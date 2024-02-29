@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="849c1784-236f-45e4-a292-84fac2e56965" basePath="api" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="716e85ad-2479-4fa3-a0b5-2ae07aa19ac8" basePath="/api" >
+		<http:request-connection host="localhost" port="8083" />
+	</http:request-config>
+	<flow name="ms_cp_abac_pep_localFlow" doc:id="7d6ff913-7798-48c8-a7f0-f693897e0ef4" >
+		<http:listener doc:name="Listener" doc:id="7dd814ec-eca7-4be1-994f-aa9bb172f09e" config-ref="HTTP_Listener_config" path="pep"/>
+		<logger level="INFO" doc:name="Logger" doc:id="6f87e00f-0164-4c16-b19a-e981b0c4214c" message="#[%dw 2.0&#10;output application/json&#10;---&#10;message]"/>
+		<http:request method="POST" doc:name="Request" doc:id="545979ea-2604-44d8-808f-d7d48df616e9" config-ref="HTTP_Request_configuration" path="/pdp" target="PDP_Decision">
+			<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+message]]]></http:body>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="186b4091-c2b2-45e5-9130-7331709d36a1" message="PEP message after request #[message]"/>
+		<try doc:name="Try" doc:id="26ce2959-74f0-4fe1-a6cc-ff0eb2d8f8c6" >
+			<choice doc:name="Choice" doc:id="77984fe6-f4eb-46df-af1d-ce2e1dbc6b0e">
+			<when expression='#[vars.PDP_Decision.continue == "true"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="24b7bf01-42ee-4758-bedf-0f49ba1dbc82" message="PEP: ABAC success. Execute backend call" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="3801512d-8410-4a98-8ab4-5478799d039a" message="PEP: ABAC failed. Do not execute backend call" />
+				<raise-error doc:name="Raise error" doc:id="64b62677-71d8-424d-8027-94733476df01" type="MULE:SECURITY" description="PDP Validation failed" />
+			</otherwise>
+		</choice>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c52553dd-2d4e-4217-987e-727dc50884b4" >
+					<set-variable value="403" doc:name="Set Variable" doc:id="704cfd6f-e1f3-4cba-b6f4-cd885f50b06e" variableName="httpStatus" />
+					<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;&quot;code&quot; : vars.httpStatus as String default '403',&#10;&quot;description&quot; : &quot;Not allowed&quot;&#10;}]" doc:name="Set Payload" doc:id="1a543820-1475-4469-a896-844a6e6b1c1e" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+	</flow>
+</mule>
