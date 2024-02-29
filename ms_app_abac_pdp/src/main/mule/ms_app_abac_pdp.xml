@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="555f7fe1-3052-49e8-91b6-36eb1463a0f2" basePath="api" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="ms_app_abac_pdpFlow" doc:id="a8e2b1d2-984e-4c52-893a-3d0b2b3f940c" >
+		<http:listener doc:name="Listener" doc:id="ca54e514-8ae7-494c-888e-31d4f8013d44" config-ref="HTTP_Listener_config" path="pdp"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c8168dd9-02d3-421b-9f7a-1bf21ce30fbc" message="PDP LOGGER INCOMING PAYLOAD  #[message.payload]"/>
+		<choice doc:name="Choice" doc:id="5e5fa175-49b8-488a-968b-df4159d5277d" >
+			<when expression="#[message.payload.attributes.headers['pdp-statuscode'] == '200']">
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;"continue": "true"]' doc:name="Set Payload" doc:id="d5b8d62e-d07e-4067-bc8c-320d3576dcf4" />
+				<logger level="INFO" doc:name="Allow" doc:id="ce0c58c9-c26c-456f-b83c-843e7253ed64" message="PDP ABAC succeeded"/>
+			</when>
+			<otherwise >
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;"continue": "false"]' doc:name="Set Payload" doc:id="97b5a7c9-eea1-4e5d-b8ed-79fe783b77be" />
+				<logger level="INFO" doc:name="Forbid" doc:id="f75c6f5a-3c80-4a39-8da5-dc4cd245998a" message="PDP ABAC failed"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
