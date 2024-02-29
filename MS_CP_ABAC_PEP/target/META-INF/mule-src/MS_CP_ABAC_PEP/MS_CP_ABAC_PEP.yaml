@@ -1,0 +1,33 @@
+id: MS_CP_ABAC_PEP
+name: MS_CP_ABAC_PEP
+description:  MuleSoft PEP ABAC custom policy
+category: Custom
+type: custom
+resourceLevelSupported: true
+encryptionSupported: false
+standalone: true
+requiredCharacteristics: []
+providedCharacteristics: []
+configuration: 
+- propertyName: PDPProtocol
+  Name: PDPProtocol
+  description: The Protocol of the PDP ABAC point (http or https)
+  type: string
+  optional: false
+  sensitive: false
+  allowMultiple: false
+- propertyName: PDPHost
+  Name: PDPHost
+  description: The Hostname of the PDP point
+  type: string
+  optional: false
+  sensitive: false
+  allowMultiple: false
+- propertyName: PDPPort
+  Name: PDPPort
+  description: The Port of the PDP point
+  type: integer
+  optional: false
+  sensitive: false
+  allowMultiple: false
+  

@@ -1,0 +1,24 @@
+{
+  "configs": [
+    "template.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "a112f75a-294a-4276-a8a0-4d0687195ca5:MS_CP_ABAC_PEP:1.0.10",
+  "minMuleVersion": "4.1.1",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {}
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {
+      "groupId": "a112f75a-294a-4276-a8a0-4d0687195ca5",
+      "classifier": "mule-policy",
+      "artifactId": "MS_CP_ABAC_PEP",
+      "type": "jar",
+      "version": "1.0.10"
+    }
+  }
+}

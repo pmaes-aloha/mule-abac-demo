@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:http-policy="http://www.mulesoft.org/schema/mule/http-policy"
+      xmlns:http-transform="http://www.mulesoft.org/schema/mule/http-policy-transform"
+      xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/http-policy http://www.mulesoft.org/schema/mule/http-policy/current/mule-http-policy.xsd
+               http://www.mulesoft.org/schema/mule/http-policy-transform http://www.mulesoft.org/schema/mule/http-policy-transform/current/mule-http-policy-transform.xsd">
+
+    <!-- <http:request-config name="HTTP_Request_configuration" protocol="{{{ PDPProtocol }}}" host="{{{ PDPHost }}}" port="{{{ PDPPort }}}"  doc:name="HTTP Request configuration" doc:id="b0c6bd9a-f67c-4a76-be2d-05a3bc4b11ec" basePath="/api" /> --> 
+     
+    
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="716e85ad-2479-4fa3-a0b5-2ae07aa19ac8" basePath="/api" >
+		<http:request-connection protocol="{{{ PDPProtocol }}}" host="{{{ PDPHost }}}" port="{{{ PDPPort }}}" />
+	</http:request-config>
+    
+    
+    
+    
+    <http-policy:proxy name="{{{policyId}}}-custom-policy">
+        <http-policy:source>
+        	<logger level="INFO" doc:name="Logger" doc:id="6f87e00f-0164-4c16-b19a-e981b0c4214c" message="#[%dw 2.0&#10;output application/json&#10;---&#10;message]"/>
+			<http:request method="POST" doc:name="Request" doc:id="1df82d01-07b0-4ab2-be7d-1f2c19edf9bc" config-ref="HTTP_Request_configuration" path="/pdp" target="PDP_Decision">
+			<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+message]]]></http:body>
+		</http:request>
+			<logger level="INFO" doc:name="Logger" doc:id="666e6b3a-5828-4927-a9f5-e1ad98537ff3" message="PEP message after request #[message]"/>
+			<try doc:name="Try" doc:id="26ce2959-74f0-4fe1-a6cc-ff0eb2d8f8c6" >
+			<choice doc:name="Choice" doc:id="7faec200-c1ed-40d8-a022-fe97932c2f5c" >
+			<when expression='#[vars.PDP_Decision.continue == "true"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="2d67425e-54be-4341-9f96-620d98d09e17" message="PEP: ABAC success. Execute backend call"/>
+				<http-policy:execute-next/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="2405ac2f-71db-471c-8746-abc61912a32c" message="PEP: ABAC failed. Do not execute backend call"/>
+			   <!-- <http-transform:set-response statusCode="403">
+	                <http-transform:body>#[ 'Forbidden by PDP' ]</http-transform:body>
+                </http-transform:set-response>-->
+                <raise-error doc:name="Raise error" doc:id="64b62677-71d8-424d-8027-94733476df01" type="MULE:SECURITY" description="PDP Validation failed"/>
+			</otherwise>
+		</choice>
+					<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="c52553dd-2d4e-4217-987e-727dc50884b4" >
+					<http-transform:set-response statusCode="403" />
+					<set-variable value="403" doc:name="Set Variable" doc:id="704cfd6f-e1f3-4cba-b6f4-cd885f50b06e" variableName="httpStatus" />
+					<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;&quot;code&quot; : vars.httpStatus as String default '403',&#10;&quot;description&quot; : &quot;Not allowed&quot;&#10;}]" doc:name="Set Payload" doc:id="1a543820-1475-4469-a896-844a6e6b1c1e" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+        
+        </http-policy:source>
+    </http-policy:proxy>
+</mule>
