@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="81fe8bfe-2453-4ad9-8ad8-dd61f40f6605" basePath="api" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="ms_app_abac_backendFlow" doc:id="505cc427-68e6-419a-a5c8-cbda1d5156e3" >
+		<http:listener doc:name="Listener" doc:id="3d6fcaeb-6063-4dbc-8f23-df53ccc95d57" config-ref="HTTP_Listener_config" path="backend"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ca4fa0d7-ce0e-4ec5-9815-f2464b4425c7" message="#[%dw 2.0&#10;output application/json&#10;---&#10;message]"/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;whoami : 'backend',&#10;full_incoming_message : message&#10;}]" doc:name="Set Payload" doc:id="c2a152e6-ad4c-4363-8cd9-911c28e647df" />
+	</flow>
+</mule>
