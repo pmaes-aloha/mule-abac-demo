@@ -55,7 +55,7 @@ This repository contains the following assets:
 ## Configuration
 
 ## Prerequisites
-* PDP and Backend application are in deployed  
+* PDP and Backend application are deployed  
 * Custom Policy is available in Exchange
    ![image](https://github.com/pmaes-aloha/mule-abac-demo/assets/98394409/e84c1b83-85a0-4b0d-aa23-ac22653cbc57)
 
